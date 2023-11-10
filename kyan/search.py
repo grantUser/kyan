@@ -193,5 +193,13 @@ def search_db(
         query = query.limit(per_page)
     else:
         query = query.paginate(page=page, per_page=per_page)
+        
+
+        if term:
+            query.display_msg = SEARCH_PAGINATE_DISPLAY_MSG.format(
+                start=query.page * query.per_page - query.per_page + 1,
+                end=min(query.page * query.per_page, query.total),
+                total=query.total
+            )
 
     return query

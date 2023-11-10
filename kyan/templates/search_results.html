@@ -99,6 +99,13 @@
 {% endif %}
 
 <div class="center">
-	{% from "bootstrap/pagination.html" import render_pagination %}
-	{{ render_pagination(torrent_query) }}
+    {% from "bootstrap/pagination.html" import render_pagination %}
+    
+    {% if torrent_query.display_msg %}
+        <div class="pagination-page-info">
+            {{ torrent_query.display_msg|safe }}
+        </div>
+    {% endif %}
+    
+    {{ render_pagination(torrent_query) }}
 </div>

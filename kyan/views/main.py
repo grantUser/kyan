@@ -161,9 +161,6 @@ def home(rss):
         rss_query_string = _generate_query_string(
             search_term, category, quality_filter, user_name
         )
-        # Use elastic is always false here because we only hit this section
-        # if we're browsing without a search term (which means we default to DB)
-        # or if ES is disabled
         return flask.render_template(
             "home.html",
             torrent_query=query,

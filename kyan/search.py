@@ -11,11 +11,27 @@ app = flask.current_app
 
 DEFAULT_MAX_SEARCH_RESULT = 1000
 DEFAULT_PER_PAGE = 75
-SERACH_PAGINATE_DISPLAY_MSG = (
+SEARCH_PAGINATE_DISPLAY_MSG = (
     "Displaying results {start}-{end} out of {total} results.<br>\n"
     "Please refine your search results if you can't find "
     "what you were looking for."
 )
+
+
+class QueryPairCaller(object):
+    def __init__(self, *items):
+        self.items = list(items)
+
+    def __getattr__(self, name):
+        def wrapper(*args, **kwargs):
+            for i in range(len(self.items)):
+                method = getattr(self.items[i], name)
+                if not callable(method):
+                    raise Exception(f"Attribute {method} is not callable")
+                self.items[i] = method(*args, **kwargs)
+            return self
+
+        return wrapper
 
 
 def _generate_query_string(term, category, filter, user):
@@ -29,39 +45,6 @@ def _generate_query_string(term, category, filter, user):
     if user:
         params["u"] = str(user)
     return params
-
-
-QUOTED_LITERAL_REGEX = re.compile(r'(?i)(-)?"(.+?)"')
-QUOTED_LITERAL_GROUP_REGEX = re.compile(
-    r"""
-    (?i)
-    (-)?
-    (
-        ".+?"
-        (?:
-            \|
-            ".+?"
-        )+
-    )
-    """,
-    re.X,
-)
-
-
-class QueryPairCaller(object):
-    def __init__(self, *items):
-        self.items = list(items)
-
-    def __getattr__(self, name):
-        def wrapper(*args, **kwargs):
-            for i in range(len(self.items)):
-                method = getattr(self.items[i], name)
-                if not callable(method):
-                    raise Exception("Attribute %r is not callable" % method)
-                self.items[i] = method(*args, **kwargs)
-            return self
-
-        return wrapper
 
 
 def search_db(
@@ -82,11 +65,13 @@ def search_db(
 
     MAX_PAGES = app.config.get("MAX_PAGES", 0)
 
+    same_user = logged_in_user and logged_in_user.id == user
+    MAX_PAGES = 0 if same_user or admin else MAX_PAGES
+
     if MAX_PAGES and page > MAX_PAGES:
         flask.abort(
             flask.Response(
-                "You've exceeded the maximum number of pages. Please "
-                "make your search query less broad.",
+                "You've exceeded the maximum number of pages. Please make your search query less broad.",
                 403,
             )
         )
@@ -101,11 +86,10 @@ def search_db(
     }
 
     sort_column = sort_keys.get(sort.lower())
-    if sort_column is None:
+    if not sort_column:
         flask.abort(400)
 
-    order_keys = {"desc": "desc", "asc": "asc"}
-
+    order_keys = ["desc", "asc"]
     order_ = order.lower()
     if order_ not in order_keys:
         flask.abort(400)
@@ -122,23 +106,16 @@ def search_db(
     if filter_tuple is sentinel:
         flask.abort(400)
 
-    if user:
-        user = models.User.by_id(user)
-        if not user:
-            flask.abort(404)
-        user = user.id
+    user = models.User.by_id(user) if user else None
 
-    main_category = None
-    sub_category = None
-    main_cat_id = 0
-    sub_cat_id = 0
+    main_category, sub_category = None, None
+    main_cat_id, sub_cat_id = 0, 0
     if category:
         cat_match = re.match(r"^(\d+)_(\d+)$", category)
         if not cat_match:
             flask.abort(400)
 
-        main_cat_id = int(cat_match.group(1))
-        sub_cat_id = int(cat_match.group(2))
+        main_cat_id, sub_cat_id = map(int, cat_match.groups())
 
         if main_cat_id > 0:
             if sub_cat_id > 0:
@@ -148,39 +125,55 @@ def search_db(
             else:
                 main_category = models.MainCategory.by_id(main_cat_id)
 
-            if not category:
-                flask.abort(400)
-
-    if rss:
-        sort_column = sort_keys["id"]
-        order = "desc"
-
-    model_class = models.TorrentNameSearch if term else models.Torrent
-
-    query = db.session.query(model_class).select_from(model_class)
+    model_class = models.Torrent
+    query = db.session.query(model_class)
 
     count_query = db.session.query(sqlalchemy.func.count(model_class.id))
     qpc = QueryPairCaller(query, count_query)
 
     if user:
-        qpc.filter(models.Torrent.uploader_id == user)
+        qpc.filter(models.Torrent.uploader_id == user.id)
 
         if not admin:
             qpc.filter(
-                models.Torrent.flags.op("&")(int(models.TorrentFlags.DELETED)).is_(
-                    False
+                ~models.Torrent.flags.op("&")(int(models.TorrentFlags.DELETED)).is_(
+                    True
                 )
             )
-            if not logged_in_user or logged_in_user.id != user:
+            if not same_user or rss:
                 qpc.filter(
-                    models.Torrent.flags.op("&")(int(models.TorrentFlags.ANONYMOUS))
-                    == 0
+                    ~models.Torrent.flags.op("&")(
+                        int(models.TorrentFlags.HIDDEN | models.TorrentFlags.ANONYMOUS)
+                    ).is_(True)
+                )
+    else:
+        if not admin:
+            qpc.filter(
+                ~models.Torrent.flags.op("&")(int(models.TorrentFlags.DELETED)).is_(
+                    True
+                )
+            )
+            if logged_in_user and not rss:
+                qpc.filter(
+                    ~models.Torrent.flags.op("&")(int(models.TorrentFlags.HIDDEN)).is_(
+                        True
+                    )
+                    | (models.Torrent.uploader_id == logged_in_user.id)
+                )
+            else:
+                qpc.filter(
+                    ~models.Torrent.flags.op("&")(int(models.TorrentFlags.HIDDEN)).is_(
+                        True
+                    )
                 )
 
-    if sub_category:
-        qpc.filter(models.Torrent.sub_category_id == sub_category.id)
-    elif main_category:
-        qpc.filter(models.Torrent.main_category_id == main_category.id)
+    if main_category:
+        qpc.filter(models.Torrent.main_category_id == main_cat_id)
+    elif sub_category:
+        qpc.filter(
+            models.Torrent.main_category_id == main_cat_id,
+            models.Torrent.sub_category_id == sub_cat_id,
+        )
 
     if filter_tuple:
         qpc.filter(
@@ -188,51 +181,17 @@ def search_db(
         )
 
     if term:
-        if "|" in term:
-            term = shlex.quote(term)
+        for item in shlex.split(term, posix=False):
+            if len(item) >= 2:
+                qpc.filter(models.Torrent.display_name.ilike(f"%{item}%"))
 
-        search_mode = "natsort"
+    query, count_query = qpc.items
 
-        or_queries = QUOTED_LITERAL_GROUP_REGEX.findall(term)
-        or_clauses = []
-        for or_group in or_queries:
-            negate, or_group = or_group
-            or_group = QUOTED_LITERAL_REGEX.findall(or_group)
-            and_clauses = []
-            for negate, literal in or_group:
-                negate = "" if negate else "-"
-                if search_mode == "natsort":
-                    and_clauses.append(
-                        models.TorrentNameSearch.search_vector.match(
-                            f"{negate}{literal}"
-                        )
-                    )
-                else:
-                    and_clauses.append(
-                        models.TorrentNameSearch.search_vector.op("@@")(
-                            f"{negate}{literal}"
-                        )
-                    )
-            or_clauses.append(sqlalchemy.and_(*and_clauses))
-        query = query.filter(sqlalchemy.or_(*or_clauses))
+    query = query.order_by(getattr(sort_column, order)())
 
-    if not rss:
-        if not term and not admin:
-            query = query.filter(
-                models.Torrent.flags.op("&")(int(models.TorrentFlags.DELETED)).is_(
-                    False
-                )
-            )
-            if not logged_in_user or (logged_in_user and not admin):
-                query = query.filter(
-                    models.Torrent.flags.op("&")(
-                        int(models.TorrentFlags.ANONYMOUS)
-                    ).is_(False)
-                )
-
-    if order_ == "desc":
-        query = query.order_by(sqlalchemy.desc(sort_column))
+    if rss:
+        query = query.limit(per_page)
     else:
-        query = query.order_by(sort_column)
+        query = query.paginate(page=page, per_page=per_page)
 
-    return query.paginate(page=page, per_page=per_page)
+    return query

@@ -1046,11 +1046,6 @@ class Torrent(TorrentBase, db.Model):
     ...
 
 
-class TorrentNameSearch(FullText, Torrent):
-    __fulltext_columns__ = ("display_name",)
-    __table_args__ = {"extend_existing": True}
-
-
 # TorrentFilelist
 class TorrentFilelist(TorrentFilelistBase, db.Model):
     ...

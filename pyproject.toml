@@ -1,0 +1,32 @@
+[tool.pdm.scripts]
+kyan = "py kyan.py {args}"
+
+[project]
+name = ""
+version = ""
+description = ""
+authors = [
+    {name = "grantUser", email = "grantUser@skiff.com"},
+]
+dependencies = [
+    "flask>=3.0.0",
+    "waitress>=2.1.2",
+    "Flask-Caching>=2.1.0",
+    "Flask-Limiter>=3.5.0",
+    "Flask-SQLAlchemy>=3.1.1",
+    "SQLAlchemy-FullText-Search>=0.3.0",
+    "SQLAlchemy-Utils>=0.41.1",
+    "Flask-Assets>=2.1.0",
+    "passlib>=1.7.4",
+    "dnspython>=2.4.2",
+    "Flask-WTF>=1.2.1",
+    "requests>=2.31.0",
+    "flask-paginate>=2023.10.24",
+    "elasticsearch>=8.10.1",
+    "elasticsearch-dsl>=8.9.0",
+    "mariadb>=1.1.8",
+    "email-validator>=2.1.0.post1",
+    "argon2-cffi>=23.1.0",
+]
+requires-python = ">=3.10"
+license = {text = "MIT"}

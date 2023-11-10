@@ -1,6 +1,5 @@
 import binascii
 import time
-from collections import OrderedDict
 from ipaddress import ip_address
 from itertools import chain
 
@@ -296,14 +295,14 @@ def nuke_user_comments(user_name):
         flask.abort(401)
     url = flask.url_for("users.view_user", user_name=user.username)
     kyan_deleted = 0
-    kyan_torrents = OrderedDict()
-    for c in chain(user.kyan_comments):
-        kyan_torrents.add(c.torrent_id)
+    kyan_torrents = {}
+    for c in chain(user.comments):
+        kyan_torrents[c.torrent_id] = None
         db.session.delete(c)
         if isinstance(c, models.Comment):
             kyan_deleted += 1
 
-    for tid in kyan_torrents:
+    for tid in kyan_torrents.keys():
         models.Torrent.update_comment_count_db(tid)
 
     for log_flavour, num in ((models.AdminLog, kyan_deleted),):

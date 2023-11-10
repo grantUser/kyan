@@ -1,7 +1,6 @@
 import json
 import os
 import re
-from collections import OrderedDict
 from datetime import datetime, timedelta
 from ipaddress import ip_address
 

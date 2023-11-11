@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% block title %}{{ user.username }} :: {{ config.SITE_NAME }}{% endblock %}
+{% block title %}{{ user.username }} :: {{ config.GENERAL.SITE_NAME }}{% endblock %}
 {% block meta_image %}{{ user.gravatar_url() }}{% endblock %}
 {% block metatags %}
 {% if search.term %}

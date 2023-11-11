@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
-{% block title %}Register :: {{ config.SITE_NAME }}{% endblock %}
+{% block title %}Register :: {{ config.GENERAL.SITE_NAME }}{% endblock %}
 {% block metatags %}
-<meta property="og:description" content="Register to {{ config.SITE_NAME }}!">
+<meta property="og:description" content="Register to {{ config.GENERAL.SITE_NAME }}!">
 {% endblock %}
 {% block body %}
 {% from "_formhelpers.html" import render_field %}
@@ -35,7 +35,7 @@
 			</div>
 		</div>
 
-		{% if config.USE_RECAPTCHA %}
+		{% if config.GENERAL.USE_RECAPTCHA %}
 		<div class="row">
 			<div class="col-md-4">
 				{% for error in form.recaptcha.errors %}

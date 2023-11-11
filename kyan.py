@@ -2,7 +2,7 @@ from waitress import serve
 
 from kyan import create_app
 
-app = create_app("config")
+app = create_app()
 
 if app.config["DEBUG"]:
     from werkzeug.debug import DebuggedApplication

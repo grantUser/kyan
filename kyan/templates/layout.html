@@ -2,7 +2,7 @@
 <html lang="en">
 	<head>
 		<meta charset="utf-8">
-		<title>{% block title %}{{ config.SITE_NAME }}{% endblock %}</title>
+		<title>{% block title %}{{ config.GENERAL.SITE_NAME }}{% endblock %}</title>
 
 		<meta name="viewport" content="width=480px">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -11,7 +11,7 @@
 		<link rel="mask-icon" href="{{ url_for('static', filename='pinned-tab.svg') }}" color="#3582F7">
 		<link rel="alternate" type="application/rss+xml" href="{% if rss_filter %}{{ url_for('main.home', page='rss', _external=True, **rss_filter) }}{% else %}{{ url_for('main.home', page='rss', _external=True) }}{% endif %}" />
 
-		<meta property="og:site_name" content="{{ config.SITE_NAME }}">
+		<meta property="og:site_name" content="{{ config.GENERAL.SITE_NAME }}">
 		<meta property="og:title" content="{{ self.title() }}">
 		<meta property="og:image" content="{% block meta_image %}/static/img/avatar/default.png{% endblock %}">
 		{% block metatags %}
@@ -72,7 +72,7 @@
 					<span class="icon-bar"></span>
 					<span class="icon-bar"></span>
 					</button>
-					<a class="navbar-brand" href="{{ url_for('main.home') }}">{{ config.SITE_NAME }}</a>
+					<a class="navbar-brand" href="{{ url_for('main.home') }}">{{ config.GENERAL.SITE_NAME }}</a>
 				</div><!--/.navbar-header -->
 				{% set search_username = (user.username + ("'" if user.username[-1] == 's' else "'s")) if user_page else None %}
 				{% set search_placeholder = 'Search {} torrents...'.format(search_username) if user_page else 'Search...' %}
@@ -306,10 +306,10 @@
 
 		<div class="container">
 			{% include "flashes.html" %}
-			{% if config.MAINTENANCE_MODE and config.MAINTENANCE_MODE_MESSAGE %}
+			{% if config.MAINTENANCE_MODE.ENABLED and config.MAINTENANCE_MODE.MESSAGE %}
 			<div class="alert alert-dismissable alert-warning" role="alert">
 				<button type="button" class="close" data-dismiss="alert">&times;</button>
-				{{ config.MAINTENANCE_MODE_MESSAGE | safe }}
+				{{ config.MAINTENANCE_MODE.MESSAGE | safe }}
 			</div>
 			{% endif %}
 

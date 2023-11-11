@@ -11,11 +11,10 @@ from kyan.views import (  # isort:skip
 )
 
 
-
 def _maintenance_mode_hook():
     """Blocks POSTs, unless MAINTENANCE_MODE_LOGINS is True and the POST is for a login."""
     if flask.request.method == "POST":
-        allow_logins = flask.current_app.config["MAINTENANCE_MODE_LOGINS"]
+        allow_logins = flask.current_app.config["MAINTENANCE_MODE"]["LOGINS"]
         endpoint = flask.request.endpoint
 
         if not (allow_logins and endpoint == "account.login"):
@@ -40,7 +39,7 @@ def _maintenance_mode_hook():
 def register_views(flask_app):
     """Register the blueprints using the flask_app object"""
     # Add our POST blocker first
-    if flask_app.config["MAINTENANCE_MODE"]:
+    if flask_app.config["MAINTENANCE_MODE"]["ENABLED"]:
         flask_app.before_request(_maintenance_mode_hook)
 
     flask_app.register_blueprint(account.bp)

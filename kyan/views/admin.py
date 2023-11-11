@@ -222,7 +222,8 @@ def view_trusted_application(app_id):
 def _send_trusted_decision_email(user, is_accepted):
     email_msg = email.EmailHolder(
         subject="Your {} Trusted Application was {}.".format(
-            app.config["GLOBAL_SITE_NAME"], ("rejected", "accepted")[is_accepted]
+            app.config["GENERAL"]["GLOBAL_SITE_NAME"],
+            ("rejected", "accepted")[is_accepted],
         ),
         recipient=user,
         text=flask.render_template("email/trusted.txt", is_accepted=is_accepted),

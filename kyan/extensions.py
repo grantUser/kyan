@@ -1,6 +1,6 @@
 import os.path
 
-from flask import abort
+import yaml
 from flask.config import Config
 from flask_assets import Environment
 from flask_caching import Cache
@@ -29,7 +29,13 @@ class LimitedPagination:
 def _get_config():
     root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     config = Config(root_path)
-    config.from_object("config")
+
+    yaml_config_file = "config.yaml"
+    if os.path.exists(yaml_config_file):
+        with open(yaml_config_file, "r") as file:
+            yaml_config_data = yaml.safe_load(file)
+            config.update(yaml_config_data)
+
     return config
 
 

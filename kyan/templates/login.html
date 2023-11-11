@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
-{% block title %}Login :: {{ config.SITE_NAME }}{% endblock %}
+{% block title %}Login :: {{ config.GENERAL.SITE_NAME }}{% endblock %}
 {% block metatags %}
-<meta property="og:description" content="Log in to {{ config.SITE_NAME }}!">
+<meta property="og:description" content="Log in to {{ config.GENERAL.SITE_NAME }}!">
 {% endblock %}
 {% block body %}
 {% from "_formhelpers.html" import render_field %}
@@ -26,7 +26,7 @@
 				{% endif %}
 						{{ form.password.label(class='control-label') }}
 
-						{% if config.ALLOW_PASSWORD_RESET: %}
+						{% if config.GENERAL.ALLOW_PASSWORD_RESET: %}
 						<small>
 							<a href="{{ url_for('account.password_reset') }}">Forgot your password?</a>
 						</small>

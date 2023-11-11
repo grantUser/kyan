@@ -101,7 +101,9 @@ def _validate_torrent_filenames(torrent):
 
 def validate_torrent_post_upload(torrent, upload_form=None):
     errors = {"torrent_file": []}
-    minimum_anonymous_torrent_size = app.config["MINIMUM_ANONYMOUS_TORRENT_SIZE"]
+    minimum_anonymous_torrent_size = app.config["LIMITS"][
+        "MINIMUM_ANONYMOUS_TORRENT_SIZE"
+    ]
     if not torrent.user and torrent.filesize < minimum_anonymous_torrent_size:
         errors["torrent_file"].append("Torrent too small for an anonymous uploader")
 
@@ -136,7 +138,9 @@ def check_uploader_ratelimit(user):
                 Torrent.uploader_ip == ip_address(request.remote_addr).packed
             )
 
-    time_range_start = now - timedelta(seconds=app.config["UPLOAD_BURST_DURATION"])
+    time_range_start = now - timedelta(
+        seconds=app.config["LIMITS"]["UPLOAD_BURST_DURATION"]
+    )
     torrent_count_query = db.session.query(sqlalchemy.func.count(Torrent.id))
     torrent_count = (
         filter_uploader(torrent_count_query)
@@ -144,12 +148,12 @@ def check_uploader_ratelimit(user):
         .scalar()
     )
 
-    if torrent_count >= app.config["MAX_UPLOAD_BURST"]:
+    if torrent_count >= app.config["LIMITS"]["MAX_UPLOAD_BURST"]:
         last_torrent = (
             filter_uploader(Torrent.query).order_by(Torrent.created_time.desc()).first()
         )
         after_timeout = last_torrent.created_time + timedelta(
-            seconds=app.config["UPLOAD_TIMEOUT"]
+            seconds=app.config["LIMITS"]["UPLOAD_TIMEOUT"]
         )
 
         if now < after_timeout:
@@ -161,19 +165,21 @@ def check_uploader_ratelimit(user):
 def handle_torrent_upload(upload_form, uploading_user=None, fromAPI=False):
     torrent_data = upload_form.torrent_file.parsed_data
     no_or_new_account = not uploading_user or (
-        uploading_user.age < app.config["RATELIMIT_ACCOUNT_AGE"]
+        uploading_user.age < app.config["LIMITS"]["RATELIMIT_ACCOUNT_AGE"]
         and not uploading_user.is_trusted
     )
 
-    if app.config["RATELIMIT_UPLOADS"] and no_or_new_account:
+    if app.config["LIMITS"]["RATELIMIT_UPLOADS"] and no_or_new_account:
         now, torrent_count, next_time = check_uploader_ratelimit(uploading_user)
         if next_time > now:
             upload_form.ratelimit.errors = ["You've gone over the upload ratelimit."]
             raise TorrentExtraValidationException()
 
     if not uploading_user:
-        if app.config["RAID_MODE_LIMIT_UPLOADS"]:
-            upload_form.rangebanned.errors = [app.config["RAID_MODE_UPLOADS_MESSAGE"]]
+        if app.config["RAID_MODE"]["LIMIT_UPLOADS"]:
+            upload_form.rangebanned.errors = [
+                app.config["RAID_MODE"]["UPLOADS_MESSAGE"]
+            ]
             raise TorrentExtraValidationException()
         elif models.RangeBan.is_rangebanned(ip_address(request.remote_addr).packed):
             upload_form.rangebanned.errors = [

@@ -3,12 +3,10 @@ import string
 
 from flask import Flask, flash, g, render_template, url_for
 from flask_assets import Bundle
-from markupsafe import Markup
 
 from kyan import models
 from kyan.api_handler import api_blueprint
-from kyan.extensions import assets, cache, db, limiter
-# from kyan.extensions import fix_paginate
+from kyan.extensions import assets, cache, config, db, limiter
 from kyan.template_utils import bp as template_utils_bp
 from kyan.utils import random_string
 from kyan.views import register_views
@@ -23,9 +21,9 @@ def add_categories(categories, main_class, sub_class):
         db.session.add(main_cat)
 
 
-def create_app(config):
+def create_app():
     app = Flask(__name__)
-    app.config.from_object(config)
+    app.config.update(config)
 
     # Don't refresh cookie each request
     app.config["SESSION_REFRESH_EACH_REQUEST"] = False
@@ -65,7 +63,7 @@ def create_app(config):
         from logging.handlers import RotatingFileHandler
 
         app.log_handler = RotatingFileHandler(
-            app.config["LOG_FILE"], maxBytes=10000, backupCount=1
+            app.config.get("LOG_FILE"), maxBytes=10000, backupCount=1
         )
         app.logger.addHandler(app.log_handler)
 
@@ -90,9 +88,8 @@ def create_app(config):
     app.jinja_env.add_extension("jinja2.ext.do")
 
     # Database
-    # fix_paginate()
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    app.config["SQLALCHEMY_DATABASE_URI"] = app.config.get(
+    app.config["SQLALCHEMY_DATABASE_URI"] = app.config["GENERAL"].get(
         "SQLALCHEMY_DATABASE_URI", None
     )
     app.config["SQLALCHEMY_DATABASE_CHARSET"] = "utf8mb4"
@@ -112,11 +109,11 @@ def create_app(config):
     app.register_blueprint(api_blueprint)
     register_views(app)
 
-    app.config[
-        "DEFAULT_GRAVATAR_URL"
-    ] = "https://api.dicebear.com/5.x/lorelei-neutral/png?seed=kyan"
-
-    cache.init_app(app, config=app.config)
+    cache_config = {
+        "CACHE_TYPE": app.config["CACHE"]["TYPE"],
+        "CACHE_THRESHOLD": app.config["CACHE"]["THRESHOLD"],
+    }
+    cache.init_app(app, config=cache_config)
     limiter.init_app(app)
 
     db.init_app(app)

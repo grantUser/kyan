@@ -21,7 +21,7 @@ def read_trackers_from_file(file_object):
 
 
 def read_trackers():
-    tracker_list_file = os.path.join(app.config["BASE_DIR"], "trackers.txt")
+    tracker_list_file = os.path.join(app.config["GENERAL"]["BASE_DIR"], "trackers.txt")
 
     if os.path.exists(tracker_list_file):
         with open(tracker_list_file, "r") as in_file:
@@ -38,7 +38,7 @@ def get_trackers_and_webseeds(torrent):
     trackers = {}
     webseeds = {}
 
-    main_announce_url = app.config.get("MAIN_ANNOUNCE_URL")
+    main_announce_url = app.config["GENERAL"].get("MAIN_ANNOUNCE_URL")
     if main_announce_url:
         trackers[main_announce_url] = None
 
@@ -59,7 +59,7 @@ def get_trackers_and_webseeds(torrent):
 def get_default_trackers():
     trackers = {}
 
-    main_announce_url = app.config.get("MAIN_ANNOUNCE_URL")
+    main_announce_url = app.config["GENERAL"].get("MAIN_ANNOUNCE_URL")
     if main_announce_url:
         trackers[main_announce_url] = None
 

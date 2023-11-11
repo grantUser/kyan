@@ -41,7 +41,7 @@
 					Date
 				{%- endcall %}
 
-				{% if config.ENABLE_SHOW_STATS %}
+				{% if config.GENERAL.ENABLE_SHOW_STATS %}
 				{%+ call render_column_header("hdr-seeders", "width:50px;", center_text=True, sort_key="seeders", header_title="Seeders") -%}
 					<i class="fa fa-arrow-up" aria-hidden="true"></i>
 				{%- endcall %}
@@ -55,14 +55,13 @@
 			</tr>
 		</thead>
 		<tbody>
-			{% set icon_dir = config.SITE_FLAVOR %}
 			{% set torrents = torrent_query.items %}
 			{% for torrent in torrents %}
 			<tr class="{% if torrent.deleted %}deleted{% elif torrent.hidden %}warning{% elif torrent.remake %}danger{% elif torrent.trusted %}success{% else %}default{% endif %}">
 				{% set cat_id = ((torrent.main_category_id|string) + '_' + (torrent.sub_category_id|string)) or torrent.sub_category.id_as_string %}
 				<td>
 					<a href="{{ url_for('main.home', c=cat_id) }}" title="{{ torrent.main_category.name }} - {{ torrent.sub_category.name }}">
-						<img src="{{ url_for('static', filename='img/icons/%s/%s.png'|format(icon_dir, cat_id)) }}" alt="{{ category_name(cat_id) }}" class="category-icon">
+						<img src="{{ url_for('static', filename='img/icons/%s.png'|format(cat_id)) }}" alt="{{ category_name(cat_id) }}" class="category-icon">
 					</a>
 				</td>
 				<td colspan="2">
@@ -84,7 +83,7 @@
 				<td class="text-center">{{ torrent.filesize | filesizeformat(True) }}</td>
 				<td class="text-center" data-timestamp="{{ torrent.created_utc_timestamp | int }}">{{ torrent.created_time.strftime('%Y-%m-%d %H:%M') }}</td>
 
-				{% if config.ENABLE_SHOW_STATS %}
+				{% if config.GENERAL.ENABLE_SHOW_STATS %}
 				<td class="text-center">{{ torrent.stats.seed_count }}</td>
 				<td class="text-center">{{ torrent.stats.leech_count }}</td>
 				<td class="text-center">{{ torrent.stats.download_count }}</td>

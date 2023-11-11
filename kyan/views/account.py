@@ -28,7 +28,10 @@ def login():
 
     form = forms.LoginForm(flask.request.form)
     if flask.request.method == "POST" and form.validate():
-        if app.config["MAINTENANCE_MODE"] and not app.config["MAINTENANCE_MODE_LOGINS"]:
+        if (
+            app.config["MAINTENANCE_MODE"]["ENABLED"]
+            and not app.config["MAINTENANCE_MODE"]["LOGINS"]
+        ):
             flask.flash(
                 "<strong>Logins are currently disabled.</strong>",
                 "danger",
@@ -71,7 +74,7 @@ def login():
 
         user.last_login_date = datetime.utcnow()
         user.last_login_ip = ip_address(flask.request.remote_addr).packed
-        if not app.config["MAINTENANCE_MODE"]:
+        if not app.config["MAINTENANCE_MODE"]["ENABLED"]:
             db.session.add(user)
             db.session.commit()
 
@@ -115,7 +118,9 @@ def register():
     if flask.request.method == "POST" and form.validate():
         ip = ip_address(flask.request.remote_addr).packed
 
-        if _check_for_multi_account(ip, app.config.get("PER_IP_ACCOUNT_COOLDOWN", 0)):
+        if _check_for_multi_account(
+            ip, app.config["LIMITS"].get("PER_IP_ACCOUNT_COOLDOWN", 0)
+        ):
             flask.flash(
                 "You or somebody else has already registered an account from this IP "
                 "recently. You cannot register another one.",
@@ -133,11 +138,11 @@ def register():
         db.session.add(user)
         db.session.commit()
 
-        if app.config["RAID_MODE_LIMIT_REGISTER"]:
+        if app.config["RAID_MODE"]["LIMIT_REGISTER"]:
             flask.flash(
                 str(
                     Markup(
-                        app.config["RAID_MODE_REGISTER_MESSAGE"] + " "
+                        app.config["RAID_MODE"]["REGISTER_MESSAGE"] + " "
                         'Please <a href="{}">ask a moderator</a> to manually '
                         "activate your account <a href=\"{}\">'{}'</a>.".format(
                             flask.url_for("site.help") + "#irchelp",
@@ -165,7 +170,9 @@ def register():
                 "warning",
             )
         else:
-            if app.config["USE_EMAIL_VERIFICATION"]:  # force verification, enable email
+            if app.config["GENERAL"][
+                "USE_EMAIL_VERIFICATION"
+            ]:  # force verification, enable email
                 send_verification_email(user)
                 return flask.render_template("waiting.html")
             else:  # disable verification, set user as active and auto log in
@@ -184,7 +191,7 @@ def register():
 @bp.route("/password-reset/<payload>", methods=["GET", "POST"])
 @bp.route("/password-reset", methods=["GET", "POST"])
 def password_reset(payload=None):
-    if not app.config["ALLOW_PASSWORD_RESET"]:
+    if not app.config["GENERAL"]["ALLOW_PASSWORD_RESET"]:
         return flask.abort(404)
 
     if flask.g.user:
@@ -330,11 +337,11 @@ def request_trusted():
     )
     if last_app:
         if (datetime.utcnow() - last_app.closed_time).days < app.config[
-            "TRUSTED_REAPPLY_COOLDOWN"
-        ]:
+            "TRUSTED_REQUIREMENTS"
+        ]["TRUSTED_REAPPLY_COOLDOWN"]:
             deny_reasons.append(
                 "Your last application was rejected less than {} days ago.".format(
-                    app.config["TRUSTED_REAPPLY_COOLDOWN"]
+                    app.config["TRUSTED_REQUIREMENTS"]["TRUSTED_REAPPLY_COOLDOWN"]
                 )
             )
     if flask.request.method == "POST":
@@ -386,7 +393,9 @@ def send_verification_email(user):
     tmpl_context = {"activation_link": activation_link, "user": user}
 
     email_msg = email.EmailHolder(
-        subject="Verify your {} account".format(app.config["GLOBAL_SITE_NAME"]),
+        subject="Verify your {} account".format(
+            app.config["GENERAL"]["GLOBAL_SITE_NAME"]
+        ),
         recipient=user,
         text=flask.render_template("email/verify.txt", **tmpl_context),
         html=flask.render_template("email/verify.html", **tmpl_context),
@@ -400,7 +409,7 @@ def send_password_reset_email(user):
 
     email_msg = email.EmailHolder(
         subject="Your {} password has been reset".format(
-            app.config["GLOBAL_SITE_NAME"]
+            app.config["GENERAL"]["GLOBAL_SITE_NAME"]
         ),
         recipient=user,
         text=flask.render_template("email/reset.txt", user=user),
@@ -417,7 +426,9 @@ def send_password_reset_request_email(user):
     tmpl_context = {"reset_link": reset_link, "user": user}
 
     email_msg = email.EmailHolder(
-        subject="{} password reset request".format(app.config["GLOBAL_SITE_NAME"]),
+        subject="{} password reset request".format(
+            app.config["GENERAL"]["GLOBAL_SITE_NAME"]
+        ),
         recipient=user,
         text=flask.render_template("email/reset-request.txt", **tmpl_context),
         html=flask.render_template("email/reset-request.html", **tmpl_context),

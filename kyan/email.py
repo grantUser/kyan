@@ -33,7 +33,7 @@ class EmailHolder(object):
     def as_mimemultipart(self):
         msg = MIMEMultipart()
         msg["Subject"] = self.subject
-        msg["From"] = app.config["MAIL_FROM_ADDRESS"]
+        msg["From"] = app.config["EMAIL"]["FROM_ADDRESS"]
         msg["To"] = self.format_recipient()
 
         msg.attach(MIMEText(self.text, "plain"))
@@ -44,7 +44,7 @@ class EmailHolder(object):
 
 
 def send_email(email_holder):
-    mail_backend = app.config.get("MAIL_BACKEND")
+    mail_backend = app.config["EMAIL"]["BACKEND"]
     if mail_backend == "mailgun":
         _send_mailgun(email_holder)
     elif mail_backend == "smtp":
@@ -55,10 +55,10 @@ def send_email(email_holder):
 
 
 def _send_mailgun(email_holder):
-    mailgun_endpoint = app.config["MAILGUN_API_BASE"] + "/messages"
-    auth = ("api", app.config["MAILGUN_API_KEY"])
+    mailgun_endpoint = app.config["EMAIL"]["MAILGUN"]["API_BASE"] + "/messages"
+    auth = ("api", app.config["EMAIL"]["MAILGUN"]["API_KEY"])
     data = {
-        "from": app.config["MAIL_FROM_ADDRESS"],
+        "from": app.config["EMAIL"]["FROM_ADDRESS"],
         "to": email_holder.format_recipient(),
         "subject": email_holder.subject,
         "text": email_holder.text,
@@ -73,13 +73,19 @@ def _send_smtp(email_holder):
     # NOTE: Unused, most likely untested! Should work, however.
     msg = email_holder.as_mimemultipart()
 
-    server = smtplib.SMTP(app.config["SMTP_SERVER"], app.config["SMTP_PORT"])
+    server = smtplib.SMTP(
+        app.config["EMAIL"]["SMTP"]["SERVER"], app.config["EMAIL"]["SMTP"]["PORT"]
+    )
     server.set_debuglevel(1)
     server.ehlo()
     server.starttls()
     server.ehlo()
-    server.login(app.config["SMTP_USERNAME"], app.config["SMTP_PASSWORD"])
+    server.login(
+        app.config["EMAIL"]["SMTP"]["USERNAME"], app.config["EMAIL"]["SMTP"]["PASSWORD"]
+    )
     server.sendmail(
-        app.config["SMTP_USERNAME"], email_holder.recipient_email(), msg.as_string()
+        app.config["EMAIL"]["SMTP"]["USERNAME"],
+        email_holder.recipient_email(),
+        msg.as_string(),
     )
     server.quit()

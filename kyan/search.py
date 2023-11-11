@@ -63,7 +63,7 @@ def search_db(
     if page > 4294967295:
         flask.abort(404)
 
-    MAX_PAGES = app.config.get("MAX_PAGES", 0)
+    MAX_PAGES = app.config["SEARCH"].get("MAX_PAGES", 0)
 
     same_user = logged_in_user and logged_in_user.id == user
     MAX_PAGES = 0 if same_user or admin else MAX_PAGES
@@ -193,13 +193,12 @@ def search_db(
         query = query.limit(per_page)
     else:
         query = query.paginate(page=page, per_page=per_page)
-        
 
         if term:
             query.display_msg = SEARCH_PAGINATE_DISPLAY_MSG.format(
                 start=query.page * query.per_page - query.per_page + 1,
                 end=min(query.page * query.per_page, query.total),
-                total=query.total
+                total=query.total,
             )
 
     return query

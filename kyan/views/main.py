@@ -42,7 +42,7 @@ def before_request():
             flask.session.permanent = True
             flask.session.modified = True
 
-        if not app.config["MAINTENANCE_MODE"]:
+        if not app.config["MAINTENANCE_MODE"]["ENABLED"]:
             ip = ip_address(flask.request.remote_addr)
             if user.last_login_ip != ip:
                 user.last_login_ip = ip.packed
@@ -86,7 +86,7 @@ def home(rss):
     # Check simply if the key exists
     use_magnet_links = "magnets" in req_args or "m" in req_args
 
-    results_per_page = app.config.get("RESULTS_PER_PAGE", DEFAULT_PER_PAGE)
+    results_per_page = app.config["SEARCH"].get("RESULTS_PER_PAGE", DEFAULT_PER_PAGE)
 
     user_id = None
     if user_name:

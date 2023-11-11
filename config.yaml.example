@@ -1,0 +1,82 @@
+DEBUG: true
+BACKUP_TORRENT_FOLDER: "torrents"
+CSRF_SESSION_KEY: "your_csrf_session_key"
+SECRET_KEY: "your_secret_key"
+
+MAINTENANCE_MODE:
+  ENABLED: false
+  MESSAGE: "Site is currently in read-only maintenance mode."
+  LOGINS: false
+
+RAID_MODE:
+  LIMIT_UPLOADS: true
+  UPLOADS_MESSAGE: "Anonymous uploads are currently disabled."
+  LIMIT_REGISTER: false
+  REGISTER_MESSAGE: "Registration is currently being limited."
+
+GENERAL:
+  SITE_NAME: "your_site_name"
+  GLOBAL_SITE_NAME: "your_global_site_name"
+  USE_RECAPTCHA: false
+  USE_EMAIL_VERIFICATION: false
+  ENABLE_SHOW_STATS: true
+  ALLOW_PASSWORD_RESET: true
+  EMAIL_BLACKLIST:
+    - "your_email_regex_1"
+    - "your_email_regex_2"
+    - "your_email_regex_3"
+  EMAIL_SERVER_BLACKLIST: []
+  RECAPTCHA_PUBLIC_KEY: "your_recaptcha_public_key"
+  RECAPTCHA_PRIVATE_KEY: "your_recaptcha_private_key"
+  BASE_DIR: "path/to/your/base_directory"
+  SQLALCHEMY_DATABASE_URI: "your_database_uri"
+  ENABLE_GRAVATAR: true
+  ENFORCE_MAIN_ANNOUNCE_URL: true
+  MAIN_ANNOUNCE_URL: "your_main_announce_url"
+  TRACKER_API_URL: "your_tracker_api_url"
+  TRACKER_API_AUTH: "your_tracker_api_auth"
+
+EMAIL:
+  BACKEND: "mailgun"
+  FROM_ADDRESS: "Sender Name <sender@domain.com>"
+  MAILGUN:
+    API_BASE: "https://api.mailgun.net/v3/YOUR_DOMAIN_NAME"
+    API_KEY: "your_mailgun_api_key"
+  SMTP:
+    SERVER: "your_smtp_server"
+    PORT: your_smtp_port
+    USERNAME: "your_smtp_username"
+    PASSWORD: "your_smtp_password"
+
+LIMITS:
+  MAX_FILES_VIEW: 1000
+  RATELIMIT_UPLOADS: true
+  RATELIMIT_ACCOUNT_AGE: 604800  # 7 days
+  MAX_UPLOAD_BURST: 5
+  UPLOAD_BURST_DURATION: 2700  # 45 minutes
+  UPLOAD_TIMEOUT: 900  # 15 minutes
+  MINIMUM_ANONYMOUS_TORRENT_SIZE: 1048576  # 1 MB
+  ACCOUNT_RECAPTCHA_AGE: 604800  # 7 days
+  PER_IP_ACCOUNT_COOLDOWN: 86400  # 24 hours
+  RAID_MODE_LIMIT_UPLOADS: true
+
+SEARCH:
+  RESULTS_PER_PAGE: 75
+  MAX_PAGES: 100
+  COUNT_CACHE_SIZE: 256
+  COUNT_CACHE_DURATION: 30
+
+COMMENTING:
+  EDITING_TIME_LIMIT: 0
+
+TRUSTED_REQUIREMENTS:
+  TRUSTED_MIN_UPLOADS: 10
+  TRUSTED_MIN_DOWNLOADS: 10000
+  TRUSTED_REAPPLY_COOLDOWN: 90
+
+CACHE:
+  TYPE: "simple"
+  THRESHOLD: 8192
+
+RATELIMIT:
+  KEY_PREFIX: "your_ratelimit_key_prefix"

@@ -1,6 +1,6 @@
 <rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:kyan="{{ url_for('site.xmlns_kyan', _external=True) }}" version="2.0">
 	<channel>
-		<title>{{ config.SITE_NAME }} - {{ term }} - {% if not magnet_links %}Torrent File{% else %}Magnet URI{% endif %} RSS</title>
+		<title>{{ config.GENERAL.SITE_NAME }} - {{ term }} - {% if not magnet_links %}Torrent File{% else %}Magnet URI{% endif %} RSS</title>
 		<description>RSS Feed for {{ term }}</description>
 		<link>{{ url_for('main.home', _external=True) }}</link>
 		<atom:link href="{{ url_for('main.home', page='rss', _external=True) }}" rel="self" type="application/rss+xml" />

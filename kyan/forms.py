@@ -56,7 +56,7 @@ def stop_on_validation_error(f):
 
 
 def recaptcha_validator_shim(form, field):
-    if app.config["USE_RECAPTCHA"]:
+    if app.config["GENERAL"]["USE_RECAPTCHA"]:
         return RecaptchaValidator()(form, field)
     else:
         # Always pass validating the recaptcha field if disabled
@@ -65,9 +65,12 @@ def recaptcha_validator_shim(form, field):
 
 def upload_recaptcha_validator_shim(form, field):
     """Selectively does a recaptcha validation"""
-    if app.config["USE_RECAPTCHA"]:
+    if app.config["GENERAL"]["USE_RECAPTCHA"]:
         # Recaptcha anonymous and new users
-        if not flask.g.user or flask.g.user.age < app.config["ACCOUNT_RECAPTCHA_AGE"]:
+        if (
+            not flask.g.user
+            or flask.g.user.age < app.config["LIMITS"]["ACCOUNT_RECAPTCHA_AGE"]
+        ):
             return RecaptchaValidator()(form, field)
     else:
         # Always pass validating the recaptcha field if disabled
@@ -75,7 +78,7 @@ def upload_recaptcha_validator_shim(form, field):
 
 
 def register_email_blacklist_validator(form, field):
-    email_blacklist = app.config.get("EMAIL_BLACKLIST", [])
+    email_blacklist = app.config["GENERAL"].get("EMAIL_BLACKLIST", [])
     email = field.data.strip()
     validation_exception = StopValidation("Blacklisted email provider")
 
@@ -94,7 +97,7 @@ def register_email_blacklist_validator(form, field):
 
 
 def register_email_server_validator(form, field):
-    server_blacklist = app.config.get("EMAIL_SERVER_BLACKLIST", [])
+    server_blacklist = app.config["GENERAL"].get("EMAIL_SERVER_BLACKLIST", [])
     if not server_blacklist:
         return True
 
@@ -212,7 +215,7 @@ class RegisterForm(FlaskForm):
 
     password_confirm = PasswordField("Password (confirm)")
 
-    if config["USE_RECAPTCHA"]:
+    if config["GENERAL"]["USE_RECAPTCHA"]:
         recaptcha = RecaptchaField()
 
 
@@ -498,8 +501,8 @@ class UploadForm(FlaskForm):
         except AssertionError as e:
             raise ValidationError("Malformed torrent metadata ({})".format(e.args[0]))
 
-        site_tracker = app.config.get("MAIN_ANNOUNCE_URL")
-        ensure_tracker = app.config.get("ENFORCE_MAIN_ANNOUNCE_URL")
+        site_tracker = app.config["GENERAL"]["MAIN_ANNOUNCE_URL"]
+        ensure_tracker = app.config["GENERAL"]["ENFORCE_MAIN_ANNOUNCE_URL"]
 
         try:
             tracker_found = _validate_trackers(torrent_dict, site_tracker)

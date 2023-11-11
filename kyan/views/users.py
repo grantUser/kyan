@@ -142,7 +142,7 @@ def view_user(user_name):
     except (ValueError, TypeError):
         page_number = 1
 
-    results_per_page = app.config.get("RESULTS_PER_PAGE", DEFAULT_PER_PAGE)
+    results_per_page = app.config["SEARCH"].get("RESULTS_PER_PAGE", DEFAULT_PER_PAGE)
 
     query_args = {
         "term": search_term or "",
@@ -216,7 +216,7 @@ def view_user_comments(user_name):
 
 @bp.route("/user/activate/<payload>")
 def activate_user(payload):
-    if app.config["MAINTENANCE_MODE"]:
+    if app.config["MAINTENANCE_MODE"]["ENABLED"]:
         flask.flash(
             "<strong>Activations are currently disabled.</strong>",
             "danger",
@@ -262,7 +262,7 @@ def nuke_user_torrents(user_name):
         flask.abort(401)
     url = flask.url_for("users.view_user", user_name=user.username)
     kyan_banned = 0
-    for t in chain(user.kyan_torrents):
+    for t in chain(user.torrents):
         t.deleted = True
         t.banned = True
         t.stats.seed_count = 0

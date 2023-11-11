@@ -256,7 +256,7 @@ class TorrentBase(object):
         """Returns a path to the info_dict file in form of 'info_dicts/aa/bb/aabbccddee...'"""
         info_hash = self.info_hash_as_hex
         return os.path.join(
-            app.config["BASE_DIR"],
+            app.config["GENERAL"]["BASE_DIR"],
             "info_dicts",
             info_hash[0:2],
             info_hash[2:4],
@@ -490,11 +490,11 @@ class CommentBase(object):
 
     @property
     def editable_until(self):
-        return self.created_utc_timestamp + config["EDITING_TIME_LIMIT"]
+        return self.created_utc_timestamp + config["COMMENTING"]["EDITING_TIME_LIMIT"]
 
     @property
     def editing_limit_exceeded(self):
-        limit = config["EDITING_TIME_LIMIT"]
+        limit = config["COMMENTING"]["EDITING_TIME_LIMIT"]
         return bool(
             limit and (datetime.utcnow() - self.created_time).total_seconds() >= limit
         )
@@ -576,13 +576,11 @@ class User(db.Model):
         return all(checks)
 
     def gravatar_url(self):
-        if "DEFAULT_GRAVATAR_URL" in app.config:
-            default_url = app.config["DEFAULT_GRAVATAR_URL"]
-        else:
-            default_url = flask.url_for(
-                "static", filename="img/avatar/default.png", _external=True
-            )
-        if app.config["ENABLE_GRAVATAR"]:
+        default_url = flask.url_for(
+            "static", filename="img/avatar/default.png", _external=True
+        )
+
+        if app.config["GENERAL"]["ENABLE_GRAVATAR"]:
             # from http://en.gravatar.com/site/implement/images/python/
             params = {
                 # Image size (https://en.gravatar.com/site/implement/images/#size)
@@ -722,8 +720,9 @@ class User(db.Model):
             num_total += uploads or 0
             downloads_total += dls or 0
         return (
-            num_total >= config["TRUSTED_MIN_UPLOADS"]
-            and downloads_total >= config["TRUSTED_MIN_DOWNLOADS"]
+            num_total >= config["TRUSTED_REQUIREMENTS"]["TRUSTED_MIN_UPLOADS"]
+            and downloads_total
+            >= config["TRUSTED_REQUIREMENTS"]["TRUSTED_MIN_DOWNLOADS"]
         )
 
 

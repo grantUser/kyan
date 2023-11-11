@@ -454,7 +454,10 @@ def delete_comment(torrent_id, comment_id):
 
 @bp.route("/view/<int:torrent_id>/submit_report", endpoint="report", methods=["POST"])
 def submit_report(torrent_id):
-    if not flask.g.user or flask.g.user.age < app.config["RATELIMIT_ACCOUNT_AGE"]:
+    if (
+        not flask.g.user
+        or flask.g.user.age < app.config["LIMITS"]["RATELIMIT_ACCOUNT_AGE"]
+    ):
         flask.abort(403)
 
     form = forms.ReportForm(flask.request.form)
@@ -495,15 +498,15 @@ def upload():
     # Anonymous uploaders and non-trusted uploaders
 
     no_or_new_account = not flask.g.user or (
-        flask.g.user.age < app.config["RATELIMIT_ACCOUNT_AGE"]
+        flask.g.user.age < app.config["LIMITS"]["RATELIMIT_ACCOUNT_AGE"]
         and not flask.g.user.is_trusted
     )
 
-    if app.config["RATELIMIT_UPLOADS"] and no_or_new_account:
+    if app.config["LIMITS"]["RATELIMIT_UPLOADS"] and no_or_new_account:
         now, ratelimit_count, next_upload_time = backend.check_uploader_ratelimit(
             flask.g.user
         )
-        show_ratelimit = ratelimit_count >= app.config["MAX_UPLOAD_BURST"]
+        show_ratelimit = ratelimit_count >= app.config["LIMITS"]["MAX_UPLOAD_BURST"]
         next_upload_time = next_upload_time if next_upload_time > now else None
 
     if flask.request.method == "POST" and upload_form.validate():

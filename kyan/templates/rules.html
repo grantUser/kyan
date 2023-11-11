@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% block title %}Rules :: {{ config.SITE_NAME }}{% endblock %}
+{% block title %}Rules :: {{ config.GENERAL.SITE_NAME }}{% endblock %}
 {% block body %}
 
 <div class="content">
@@ -14,25 +14,13 @@
 	<p><b>Content restrictions:</b> This site is for content that originates from and/or is specific to China, Japan, and/or Korea.</p>
 	<p>Other content is not allowed without exceptions and will be removed.</p>
 	<p>The above content restrictions for anime are defined by the content having an <a href="https://anidb.net/" referrerpolicy="no-referrer" rel="noopener nofollow">AniDB</a> listing.</p><br>
-	<p><a href="//{{ config.EXTERNAL_URLS['main'] }}"><b>{{ config.EXTERNAL_URLS['main'] }}</b></a> is for <b>work-safe</b> content only. The following rules apply:</p>
+	<p><a href="//{{ config.GENERAL.GLOBAL_SITE_NAME }}"><b>{{ config.GENERAL.GLOBAL_SITE_NAME }}</b></a> is for <b>work-safe</b> content only. The following rules apply:</p>
 	<ul>
 		<li>
 			<p>No pornography of any kind.</p>
 		</li>
 		<li>
 			<p>No extreme visual content. This means no scat, gore, or any other of such things.</p>
-		</li>
-		<li>
-			<p>Troll torrents are not allowed. These will be removed on sight.</p>
-		</li>
-	</ul><br>
-	<p><a href="//{{ config.EXTERNAL_URLS['fap'] }}"><b>{{ config.EXTERNAL_URLS['fap'] }}</b></a> is the place for <b>non-work-safe</b> content only. Still, the following rules apply:</p>
-	<ul>
-		<li>
-			<p>No extreme real life visual content. This means no scat, gore, bestiality, or any other of such things.</p>
-		</li>
-		<li>
-			<p>Absolutely no real life child pornography of any kind.</p>
 		</li>
 		<li>
 			<p>Troll torrents are not allowed. These will be removed on sight.</p>
